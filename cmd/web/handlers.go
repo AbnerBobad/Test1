@@ -2,6 +2,10 @@ package main
 
 import (
 	"net/http"
+	"strconv"
+
+	"github.com/AbnerBobad/final_project/internal/data"
+	"github.com/AbnerBobad/final_project/internal/validator"
 )
 
 // LOGIN START
@@ -47,6 +51,76 @@ func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// product form creation
+func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
+	//parsed data form
+	err := r.ParseForm()
+	if err != nil {
+		app.logger.Error("failed to parse products from data", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	//data members parsed
+	productName := r.PostForm.Get("product_name")
+	productQuantityStr := r.PostForm.Get("product_quantity")
+	productPriceStr := r.PostForm.Get("product_price")
+	productDescription := r.PostForm.Get("product_description")
+
+	productQuantity, err := strconv.ParseInt(productQuantityStr, 10, 64)
+	if err != nil {
+		app.logger.Error("invalid product quantity", "error", err)
+		http.Error(w, "Invalid product quantity", http.StatusBadRequest)
+		return
+	}
+
+	productPrice, err := strconv.ParseFloat(productPriceStr, 64)
+	if err != nil {
+		app.logger.Error("invalid product price", "error", err)
+		http.Error(w, "Invalid product price", http.StatusBadRequest)
+		return
+	}
+
+	//Instance for data members
+	product := &data.Product{
+		PName:        productName,
+		PQuantity:    productQuantity,
+		PPrice:       productPrice,
+		PDescription: productDescription,
+	}
+	//Data Validator
+	v := validator.NewValidator()
+	data.ValidateProduct(v, product)
+	//check for validation
+	if !v.ValidData() {
+		data := NewTemplateData()
+		data.Title = "StockTrack"
+		data.HeaderText = "Add New Products"
+		data.FileInfo = "Please fill in the product details below."
+		data.FormErrors = v.Errors
+		data.FormData = map[string]string{
+			"product_name":        productName,
+			"product_quantity":    productQuantityStr,
+			"product_price":       productPriceStr,
+			"product_description": productDescription,
+		}
+		err := app.render(w, http.StatusOK, "product.html", data)
+		if err != nil {
+			app.logger.Error("failed to render the Product Page", "template", "product.html", "error", err, "url", r.URL.Path, "method", r.Method)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	//error checker
+	err = app.products.Insert(product)
+	if err != nil {
+		app.logger.Error("failed to insert product into database", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/main", http.StatusSeeOther)
 }
 
 // VIEW START

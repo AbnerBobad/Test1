@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/AbnerBobad/final_project/internal/data"
+)
+
 type TemplateData struct {
 	Title      string
 	HeaderText string

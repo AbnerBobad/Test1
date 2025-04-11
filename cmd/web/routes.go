@@ -16,7 +16,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /product", app.productHandler) //display product page
 	mux.HandleFunc("GET /view", app.viewHandler)       //display view page
 
-	//Success Pages
+	//Submit form
+	mux.HandleFunc("POST /product", app.createProduct) //submit product form
 
 	//Retrieve Data GETS
 

@@ -52,52 +52,46 @@
               <h2 class="head">{{.HeaderText}}</h2>
             </div>
             <div class="card-body text-dark">
-              <form method="POST" action="/add-product">
+              <form method="POST" action="/product">
                 <div class="form-group mb-4">
-                  <label for="productName">Product Name</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="productName"
-                    name="name"
-                    required
-                    aria-label="Enter product name"
-                  />
+                  <label for="product_name">Product Name</label>
+                  <input type="text" id="product_name" name="product_name" placeholder="Insert the name of the Product" value="{{index .FormData "product_name"}}" 
+                  class="form-control {{if .FormErrors.product_name}}invalid{{end}}">
+                {{with .FormErrors.product_name}}
+               <div class="error">{{.}}</div>
+                 {{end}}
                 </div>
                 <div class="form-row mb-4">
                   <div class="form-group col-md-6">
                     <label for="quantity">Quantity</label>
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="quantity"
-                      name="quantity"
-                      min="0"
-                      required
-                    />
+                   <input type="number" id="product_quantity" name="product_quantity" placeholder="Insert the quantity of the Product" value="{{index .FormData "product_quantity"}}"
+                    class="form-control {{if .FormErrors.product_quantity}}invalid{{end}}">
+                    {{with .FormErrors.product_quantity}}
+                    <div class="error">{{.}}</div>
+                    {{end}}
                   </div>
                   <div class="form-group col-md-6">
                     <label for="price">Price</label>
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="price"
-                      name="price"
-                      step="0.01"
-                      min="0"
-                      required
-                      title="Enter a valid price greater than or equal to 0"
-                    />
+                    <input type="number" id="product_price" name="product_price" placeholder="Insert the price of the Product" value="{{index .FormData "product_price"}}"
+                    class="form-control {{if .FormErrors.product_price}}invalid{{end}}">
+                    {{with .FormErrors.product_price}}
+                    <div class="error">{{.}}</div>
+                    {{end}}
                   </div>
                 </div>
                 <div class="form-group mb-4">
                   <label for="description">Description (optional)</label>
-                  <textarea
-                    class="form-control"
-                    id="description"
-                    name="description"
+                  <textarea 
+                    id="product_description"
+                    name="product_description"
                     rows="3"
-                  ></textarea>
+                    placeholder="Insert the description of the Product"
+                    value="{{index .FormData "product_description"}}"
+                    class="form-control {{if .FormErrors.product_description}}invalid{{end}}">
+                  </textarea>
+                  {{with .FormErrors.product_description}}
+                  <div class="error">{{.}}</div>
+                  {{end}}
                 </div>
                 <div class="form-group">
                   <button type="submit" class="btn btn-lg btn-block">
