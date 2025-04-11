@@ -10,26 +10,17 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	// //Routes Definitions (GET)
-	// mux.HandleFunc("GET /", app.home)                        //display home page
-	// mux.HandleFunc("GET /feedback/{$}", app.feedbackHandler) //to submit feedback
-	// mux.HandleFunc("GET /journal/{$}", app.journalHandler)   // to submit form
-	// mux.HandleFunc("GET /todo/{$}", app.todoHandler)         //to submit todo
+	//Routes Definitions (GET)
+	mux.HandleFunc("GET /", app.loginHandler)          //display home page
+	mux.HandleFunc("GET /main", app.mainHandler)       //display main page
+	mux.HandleFunc("GET /product", app.productHandler) //display product page
+	mux.HandleFunc("GET /view", app.viewHandler)       //display view page
 
-	// //Success Pages
-	// mux.HandleFunc("GET /feedback/success", app.feedbackSuccess) //feedback success
-	// mux.HandleFunc("GET /journal/success", app.journalSuccess)   //Journal Success Route
-	// mux.HandleFunc("GET /todo/success", app.todoSuccess)         //Todo Success Route
+	//Success Pages
 
-	// //Retrieve Data GETS
-	// mux.HandleFunc("GET /feedbacks", app.viewFeedbacks) //view feedbacks
-	// mux.HandleFunc("GET /journals", app.viewJournals)   //view journals
-	// mux.HandleFunc("GET /todos", app.viewTodos)         //view todos
+	//Retrieve Data GETS
 
-	// //Routes Definitions (POST)
-	// mux.HandleFunc("POST /feedback/success", app.createFeedback) //handle feedback submission
-	// mux.HandleFunc("POST /journal/success", app.createJournal)   //handle journal submission
-	// mux.HandleFunc("POST /todo/success", app.createTodo)         //handle todo submission
+	//Routes Definitions (POST)
 
 	return app.loggingMiddleware(mux)
 }
