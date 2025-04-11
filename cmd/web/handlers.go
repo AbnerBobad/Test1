@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/AbnerBobad/final_project/internal/data"
-	"github.com/AbnerBobad/final_project/internal/validator"
 )
 
 // LOGIN START
@@ -15,9 +14,9 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	data.Title = "StockTrack"
 	data.HeaderText = "Login Page"
 	data.FileInfo = "Please login to continue."
-	err := app.render(w, http.StatusOK, "index.html", data)
+	err := app.render(w, http.StatusOK, "index.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render the Login page", "template", "index.html", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render the Login page", "template", "index.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -30,9 +29,9 @@ func (app *application) mainHandler(w http.ResponseWriter, r *http.Request) {
 	data.Title = "StockTrack"
 	data.HeaderText = "Welcome to StockTrack"
 	data.FileInfo = "Manage your inventory efficiently and stay updated on stock levels."
-	err := app.render(w, http.StatusOK, "main.html", data)
+	err := app.render(w, http.StatusOK, "main.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render the Main Page", "template", "main.html", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render the Main Page", "template", "main.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -45,9 +44,9 @@ func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 	data.Title = "StockTrack"
 	data.HeaderText = "Add New Products"
 	data.FileInfo = "Please fill in the product details below."
-	err := app.render(w, http.StatusOK, "product.html", data)
+	err := app.render(w, http.StatusOK, "product.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render the Product Page", "template", "product.html", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render the Product Page", "template", "product.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -68,6 +67,47 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 	productPriceStr := r.PostForm.Get("product_price")
 	productDescription := r.PostForm.Get("product_description")
 
+	if productName == "" || productQuantityStr == "" || productPriceStr == "" || productDescription == "" {
+		data := NewTemplateData()
+		data.Title = "StockTrack"
+		data.HeaderText = "Add New Products"
+		data.FileInfo = "Please fill in the product details below."
+		data.FormErrors = map[string]string{}
+		if productName == "" {
+			data.FormErrors["product_name"] = "Product name is required"
+		}
+		if productQuantityStr == "" {
+			data.FormErrors["product_quantity"] = "Product quantity is required"
+		}
+		productQuantity, err := strconv.ParseInt(productQuantityStr, 10, 64)
+		if err != nil || productQuantity <= 0 {
+			data.FormErrors["product_quantity"] = "Product Quantity must be a positive number"
+		}
+		if productPriceStr == "" {
+			data.FormErrors["product_price"] = "Product price is required"
+		}
+		productPrice, err := strconv.ParseFloat(productPriceStr, 64)
+		if err != nil || productPrice <= 0.0 {
+			data.FormErrors["product_price"] = "Product Price must be a positive number"
+		}
+		if productDescription == "" {
+			data.FormErrors["product_description"] = "Product description is required"
+		}
+		data.FormData = map[string]string{
+			"product_name":        productName,
+			"product_quantity":    productQuantityStr,
+			"product_price":       productPriceStr,
+			"product_description": productDescription,
+		}
+		err = app.render(w, http.StatusOK, "product.tmpl", data)
+		if err != nil {
+			app.logger.Error("failed to render the Product Page", "template", "product.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	//parse the product quantity and price
 	productQuantity, err := strconv.ParseInt(productQuantityStr, 10, 64)
 	if err != nil {
 		app.logger.Error("invalid product quantity", "error", err)
@@ -81,37 +121,12 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid product price", http.StatusBadRequest)
 		return
 	}
-
-	//Instance for data members
+	//create a new product
 	product := &data.Product{
 		PName:        productName,
 		PQuantity:    productQuantity,
 		PPrice:       productPrice,
 		PDescription: productDescription,
-	}
-	//Data Validator
-	v := validator.NewValidator()
-	data.ValidateProduct(v, product)
-	//check for validation
-	if !v.ValidData() {
-		data := NewTemplateData()
-		data.Title = "StockTrack"
-		data.HeaderText = "Add New Products"
-		data.FileInfo = "Please fill in the product details below."
-		data.FormErrors = v.Errors
-		data.FormData = map[string]string{
-			"product_name":        productName,
-			"product_quantity":    productQuantityStr,
-			"product_price":       productPriceStr,
-			"product_description": productDescription,
-		}
-		err := app.render(w, http.StatusOK, "product.html", data)
-		if err != nil {
-			app.logger.Error("failed to render the Product Page", "template", "product.html", "error", err, "url", r.URL.Path, "method", r.Method)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		return
 	}
 	//error checker
 	err = app.products.Insert(product)
@@ -130,9 +145,9 @@ func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
 	data.Title = "StockTrack"
 	data.HeaderText = "Current Inventory"
 	data.FileInfo = "Here are the products in your inventory."
-	err := app.render(w, http.StatusOK, "view.html", data)
+	err := app.render(w, http.StatusOK, "view.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render the view Page", "template", "view.html", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render the view Page", "template", "view.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

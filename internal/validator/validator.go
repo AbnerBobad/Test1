@@ -79,3 +79,10 @@ func IsValidDate(date time.Time) bool {
 
 	return !date.Before(today)
 }
+
+func IsPositiveQuantity(quantity int64) bool {
+	return quantity > 0
+}
+func IsPositivePrice(price float64) bool {
+	return price > 0
+}

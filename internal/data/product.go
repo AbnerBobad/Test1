@@ -23,14 +23,13 @@ type ProductModel struct {
 
 // validation checker
 func ValidateProduct(v *validator.Validator, product *Product) {
-	v.Check(product.PName != "", "product_name", "Must be provided")
-	v.Check(product.PQuantity != " ", "product_quantity", "Must be provided")
-	v.Check(product.PPrice != "", "product_price", "Must be provided")
+	//check for blank
+	v.Check(validator.NotBlank(product.PName), "product_name", "Must include Product Name")
+	v.Check(validator.IsPositiveQuantity(product.PQuantity), "product_quantity", "Must include a valid Product Quantity greater than 0")
+	v.Check(validator.IsPositivePrice(product.PPrice), "product_price", "Must include a valid Product Price greater than 0")
 
-	v.Check(len(product.PName) <= 100, "product_name", "Must not exceed 100 characters")
-	v.Check(product.PQuantity > 0, "product_quantity", "Must be greater than 0")
-	v.Check(product.PPrice > 0.0, "product_price", "Must be greater than 0")
-	v.Check(len(product.PDescription) <= 255, "product_description", "Must not exceed 255 characters")
+	v.Check(validator.MaxLength(product.PName, 100), "product_name", "Product Name must be less than 100 characters")
+	v.Check(validator.MaxLength(product.PDescription, 255), "product_description", "Product Description must be less than 255 characters")
 }
 
 // Insert record into the the products database
