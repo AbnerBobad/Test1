@@ -43,7 +43,7 @@ func TestHomeHandler(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("got status code %v, expected status code %v.", status, http.StatusOK)
 	}
-	expected := "Welcome to the Main Page\n"
+	expected := "Welcome to StockTrack\n"
 	got := rr.Body.String()
 	if got != expected {
 		t.Errorf("got %q, expected %q", got, expected)
@@ -64,7 +64,7 @@ func TestProductHandler(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("got status code %v, expected status code %v.", status, http.StatusOK)
 	}
-	expected := "Insert your product here\n"
+	expected := "Add New Products\n"
 	got := rr.Body.String()
 	if got != expected {
 		t.Errorf("got %q, expected %q", got, expected)
@@ -85,7 +85,7 @@ func TestViewHandler(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("got status code %v, expected status code %v.", status, http.StatusOK)
 	}
-	expected := "View your product's here\n"
+	expected := "Current Inventory\n"
 	got := rr.Body.String()
 	if got != expected {
 		t.Errorf("got %q, expected %q", got, expected)

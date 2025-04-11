@@ -14,10 +14,8 @@ import (
 )
 
 type application struct {
-	addr *string
-	// feedback      *data.FeedbackModel
-	// journal       *data.JournalModel
-	// todo          *data.TodoModel
+	addr          *string
+	products      *data.ProductModel
 	logger        *slog.Logger
 	templateCache map[string]*template.Template
 }
@@ -45,10 +43,8 @@ func main() {
 	defer db.Close()
 
 	app := &application{
-		addr: addr,
-		// feedback:      &data.FeedbackModel{DB: db},
-		// journal:       &data.JournalModel{DB: db},
-		// todo:          &data.TodoModel{DB: db},
+		addr:          addr,
+		products:      &data.ProductModel{DB: db},
 		logger:        logger,
 		templateCache: templateCache,
 	}

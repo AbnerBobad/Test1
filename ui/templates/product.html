@@ -13,7 +13,7 @@
   <body>
     <header>
       <nav class="navbar navbar-expand-lg navbar-dark ">
-        <a class="navbar-brand" href="/main"><b>StackTrack</b></a>
+        <a class="navbar-brand" href="/main"><b>{{.Title}}</b></a>
         <button
           class="navbar-toggler"
           type="button"
@@ -49,7 +49,7 @@
         <div class="col-lg-7">
           <div class="card">
             <div class="card-header bg-color text-white">
-              <h2 class="head">Add New Products</h2>
+              <h2 class="head">{{.HeaderText}}</h2>
             </div>
             <div class="card-body text-dark">
               <form method="POST" action="/add-product">

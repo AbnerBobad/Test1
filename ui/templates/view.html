@@ -13,7 +13,7 @@
   <body>
     <header>
       <nav class="navbar navbar-expand-lg navbar-dark ">
-        <a class="navbar-brand" href="/main"><b>StackTrack</b></a>
+        <a class="navbar-brand" href="/main"><b>{{.Title}}</b></a>
         <button
           class="navbar-toggler"
           type="button"
@@ -48,7 +48,7 @@
     </header>
     <main class="container py-4">
       <div class="card">
-        <div class="card-header">Current Inventory</div>
+        <div class="card-header">{{.HeaderText}}</div>
         <div class="card-body">
           <table class="table table-hover" action="/" method="POST"> 
             <thead>

@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS invenory_movements CASCADE;

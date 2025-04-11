@@ -9,7 +9,8 @@ import (
 func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "StockTrack"
-	data.HeaderText = "Welcome to StockTrack, your stock tracking website!"
+	data.HeaderText = "Login Page"
+	data.FileInfo = "Please login to continue."
 	err := app.render(w, http.StatusOK, "index.html", data)
 	if err != nil {
 		app.logger.Error("failed to render the Login page", "template", "index.html", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -23,7 +24,8 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 func (app *application) mainHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "StockTrack"
-	data.HeaderText = "Welcome to the Main Page"
+	data.HeaderText = "Welcome to StockTrack"
+	data.FileInfo = "Manage your inventory efficiently and stay updated on stock levels."
 	err := app.render(w, http.StatusOK, "main.html", data)
 	if err != nil {
 		app.logger.Error("failed to render the Main Page", "template", "main.html", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -37,7 +39,8 @@ func (app *application) mainHandler(w http.ResponseWriter, r *http.Request) {
 func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "StockTrack"
-	data.HeaderText = "Insert your product here"
+	data.HeaderText = "Add New Products"
+	data.FileInfo = "Please fill in the product details below."
 	err := app.render(w, http.StatusOK, "product.html", data)
 	if err != nil {
 		app.logger.Error("failed to render the Product Page", "template", "product.html", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -51,7 +54,8 @@ func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "StockTrack"
-	data.HeaderText = "View your product's here"
+	data.HeaderText = "Current Inventory"
+	data.FileInfo = "Here are the products in your inventory."
 	err := app.render(w, http.StatusOK, "view.html", data)
 	if err != nil {
 		app.logger.Error("failed to render the view Page", "template", "view.html", "error", err, "url", r.URL.Path, "method", r.Method)
