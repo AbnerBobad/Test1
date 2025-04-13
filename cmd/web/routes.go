@@ -18,9 +18,5 @@ func (app *application) routes() http.Handler {
 	//Submit form
 	mux.HandleFunc("POST /product", app.createProduct) //submit product form
 
-	//Retrieve Data GETS
-
-	//Routes Definitions (POST)
-
 	return app.loggingMiddleware(mux)
 }

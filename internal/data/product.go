@@ -14,6 +14,7 @@ type Product struct {
 	PDescription string    `json:"product_description"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	StockStatus  string    `json:"status"`
 }
 type ProductModel struct {
 	DB *sql.DB
@@ -38,6 +39,45 @@ func (m *ProductModel) Insert(product *Product) error {
 		product.PDescription,
 	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
 
+}
+
+// // Get all records from the products database
+func (m *ProductModel) GetAll() ([]*Product, error) {
+	query := `
+		SELECT product_id, product_name, product_quantity, product_price, product_description, created_at, updated_at
+		FROM products
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	products := make([]*Product, 0)
+
+	for rows.Next() {
+		product := &Product{}
+		if err := rows.Scan(
+			&product.ID,
+			&product.PName,
+			&product.PQuantity,
+			&product.PPrice,
+			&product.PDescription,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+	// Check for iteration error
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, nil
 }
 
 // // Update record in the products database

@@ -3,16 +3,24 @@
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous"/>
-    <link rel="stylesheet" href="/static/style.css"/>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+      integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
     <title>{{.Title}}</title>
   </head>
   <body>
     <header>
-      <nav class="navbar navbar-expand-lg navbar-dark ">
+      <nav class="navbar navbar-expand-lg navbar-dark">
         <a class="navbar-brand" href="/main"><b>{{.Title}}</b></a>
         <button
           class="navbar-toggler"
@@ -32,28 +40,38 @@
               <a class="nav-link" href="/main">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/product"
-                >Add</a>
+              <a class="nav-link" href="/product">Add</a>
             </li>
             <li class="nav-item active">
-              <a class="nav-link" href="/view">View All <span class="sr-only">(current)</span></a>
+              <a class="nav-link" href="/view"
+                >View All <span class="sr-only">(current)</span></a
+              >
             </li>
           </ul>
           <form class="d-flex" method="GET" action="/search">
-            <input class="form-control mr-2" type="search" placeholder="Search products..." name="query" required aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
+            <input
+              class="form-control mr-2"
+              type="search"
+              placeholder="Search products..."
+              name="query"
+              required
+              aria-label="Search"
+            />
+            <button class="btn btn-outline-success" type="submit">
+              Search
+            </button>
           </form>
         </div>
       </nav>
     </header>
-    
+
     <main class="container py-4">
       <div class="card">
         <div class="card-header bg-color text-white">
-        <h2 class="head">{{.HeaderText}}</h2>
+          <h2 class="head">{{.HeaderText}}</h2>
         </div>
         <div class="card-body">
-          <table class="table table-hover" action="/" method="POST"> 
+          <table class="table table-hover" action="/view" method="GET">
             <thead>
               <tr>
                 <th>Product</th>
@@ -66,27 +84,36 @@
             </thead>
             <tbody>
               {{range .Products}}
-                <tr>
-                  <td>{{.Name}}</td>
-                  <td>{{.Quantity}}</td>
-                  <td>${{.Price}}</td>
-                  <td>{{.Description}}</td>
-                  <td>{{if .Status}}Available{{else}}Out of Stock{{end}}</td>
-                  <td>
-                    <a href="/edit?id={{.ID}}" class="btn btn-primary">Edit</a>
-                    <a href="/delete?id={{.ID}}" class="btn btn-danger">Delete</a>
-                  </td>
-                </tr>
+              <tr>
+                <td>{{.PName}}</td>
+                <td>{{.PQuantity}}</td>
+                <td>$ {{.PPrice}}</td>
+                <td>{{.PDescription}}</td>
+                <td class="{{if eq .StockStatus "Out of Stock"}}table-danger {{else if eq .StockStatus "Stock Low"}}table-warning
+                {{else}}table-info{{end}}">{{.StockStatus}}
+                </td>
+                <td>
+                  <a href="/edit?id={{.ID}}" class="btn btn-primary">Edit</a>
+                  <a href="/delete?id={{.ID}}" class="btn btn-danger">Delete</a>
+                </td>
+              </tr>
               {{end}}
             </tbody>
           </table>
         </div>
       </div>
-        
     </main>
 
-   <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
-   <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

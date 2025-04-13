@@ -164,11 +164,33 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 // VIEW START
 // viewHandler is a handler that renders the view page - view.tmpl
 func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
+	//get all products from the database
+	products, err := app.products.GetAll()
+	if err != nil {
+		app.logger.Error("failed to get products from database", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	//warning
+	for _, product := range products {
+		switch {
+		case product.PQuantity == 0:
+			product.StockStatus = "Out of Stock"
+		case product.PQuantity <= 5:
+			product.StockStatus = "Stock Low"
+		default:
+			product.StockStatus = "Available"
+		}
+	}
+
 	data := NewTemplateData()
 	data.Title = "StockTrack"
 	data.HeaderText = "Current Inventory"
 	data.FileInfo = "Here are the products in your inventory."
-	err := app.render(w, http.StatusOK, "view.tmpl", data)
+	data.Products = products
+
+	err = app.render(w, http.StatusOK, "view.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render the view Page", "template", "view.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
