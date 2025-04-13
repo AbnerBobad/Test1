@@ -1,6 +1,7 @@
 # Test1
 ![Database-Scheme](./ui/img/img1.png)
-The Date-base is set to hold user, the tables that is being used in test 1 is products.
+
+The database is set to hold users; the table used in Test 1 is products.
 
 # Program Run
 This project uses the default make file structure
@@ -8,7 +9,7 @@ This project uses the default make file structure
 - make db/psql - to open the database.
 
 # Database 
-- to run the migration first comment the ALTERS for products
+- To run the migration, first comment the ALTERS for products
 
 # Templates 
 - main.tmpl - is the home Screen for my website
