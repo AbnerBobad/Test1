@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"time"
-
-	"github.com/AbnerBobad/final_project/internal/validator"
 )
 
 type Product struct {
@@ -19,17 +17,6 @@ type Product struct {
 }
 type ProductModel struct {
 	DB *sql.DB
-}
-
-// validation checker
-func ValidateProduct(v *validator.Validator, product *Product) {
-	//check for blank
-	v.Check(validator.NotBlank(product.PName), "product_name", "Must include Product Name")
-	v.Check(validator.IsPositiveQuantity(product.PQuantity), "product_quantity", "Must include a valid Product Quantity greater than 0")
-	v.Check(validator.IsPositivePrice(product.PPrice), "product_price", "Must include a valid Product Price greater than 0")
-
-	v.Check(validator.MaxLength(product.PName, 100), "product_name", "Product Name must be less than 100 characters")
-	v.Check(validator.MaxLength(product.PDescription, 255), "product_description", "Product Description must be less than 255 characters")
 }
 
 // Insert record into the the products database

@@ -49,6 +49,11 @@ func MaxLength(value string, n int) bool {
 	return utf8.RuneCountInString(value) <= n
 }
 
+// MaxLength checks if a string's length is less than or equal to the specified maximum length.
+func MaxLengths(value string, max int) bool {
+	return len(value) <= max
+}
+
 // MinLength returns true if the value contains at least n characters
 func MinLength(value string, n int) bool {
 	return utf8.RuneCountInString(value) >= n

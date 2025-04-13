@@ -9,18 +9,18 @@ import (
 
 // LOGIN START
 // LoginHandler is a handler that renders the home page - index.tmpl
-func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
-	data := NewTemplateData()
-	data.Title = "StockTrack"
-	data.HeaderText = "Login Page"
-	data.FileInfo = "Please login to continue."
-	err := app.render(w, http.StatusOK, "index.tmpl", data)
-	if err != nil {
-		app.logger.Error("failed to render the Login page", "template", "index.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-}
+// func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
+// 	data := NewTemplateData()
+// 	data.Title = "StockTrack"
+// 	data.HeaderText = "Login Page"
+// 	data.FileInfo = "Please login to continue."
+// 	err := app.render(w, http.StatusOK, "index.tmpl", data)
+// 	if err != nil {
+// 		app.logger.Error("failed to render the Login page", "template", "index.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+// 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+// 		return
+// 	}
+// }
 
 // MAIN PAGE START
 // mainHandler is a handler that renders the main page - main.tmpl
@@ -66,33 +66,50 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 	productQuantityStr := r.PostForm.Get("product_quantity")
 	productPriceStr := r.PostForm.Get("product_price")
 	productDescription := r.PostForm.Get("product_description")
-
+	//check if the product name, quantity, price and description are empty
 	if productName == "" || productQuantityStr == "" || productPriceStr == "" || productDescription == "" {
 		data := NewTemplateData()
 		data.Title = "StockTrack"
 		data.HeaderText = "Add New Products"
 		data.FileInfo = "Please fill in the product details below."
 		data.FormErrors = map[string]string{}
+		//check if the product name is valid
 		if productName == "" {
 			data.FormErrors["product_name"] = "Product name is required"
+		} else if len(productName) < 1 || len(productName) > 100 {
+			data.FormErrors["product_name"] = "Product Name must be less than 100 characters"
 		}
+		// Check if the product name contains any numbers, CANT BE IMPLEMENTED
+		// because the product name can contain numbers
+		// for _, char := range productName {
+		// 	if char >= '0' && char <= '9' {
+		// 		data.FormErrors["product_name"] = "Product name must not contain numbers"
+		// 		break
+		// 	}
+		// }
+
+		//check if the product quantity is valid
+		productQuantity, err := strconv.ParseInt(productQuantityStr, 10, 64)
+		//check if the product quantity is valid
 		if productQuantityStr == "" {
 			data.FormErrors["product_quantity"] = "Product quantity is required"
-		}
-		productQuantity, err := strconv.ParseInt(productQuantityStr, 10, 64)
-		if err != nil || productQuantity <= 0 {
+		} else if err != nil || productQuantity <= 0 {
 			data.FormErrors["product_quantity"] = "Product Quantity must be a positive number"
 		}
-		if productPriceStr == "" {
-			data.FormErrors["product_price"] = "Product price is required"
-		}
+		//parse the product price
 		productPrice, err := strconv.ParseFloat(productPriceStr, 64)
-		if err != nil || productPrice <= 0.0 {
+		//check if the product price is valid
+		if productPriceStr == "" {
+			data.FormErrors["product_price"] = "Product Price is required"
+		} else if err != nil || productPrice <= 0.0 {
 			data.FormErrors["product_price"] = "Product Price must be a positive number"
 		}
 		if productDescription == "" {
 			data.FormErrors["product_description"] = "Product description is required"
 		}
+		// if productDescription == "" {
+		// 	productDescription = "none"
+		// }
 		data.FormData = map[string]string{
 			"product_name":        productName,
 			"product_quantity":    productQuantityStr,
@@ -135,7 +152,7 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/main", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // VIEW START

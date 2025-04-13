@@ -11,8 +11,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
 	//Routes Definitions (GET)
-	mux.HandleFunc("GET /", app.loginHandler)          //display home page
-	mux.HandleFunc("GET /main", app.mainHandler)       //display main page
+	mux.HandleFunc("GET /", app.mainHandler)           //display home page
 	mux.HandleFunc("GET /product", app.productHandler) //display product page
 	mux.HandleFunc("GET /view", app.viewHandler)       //display view page
 

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS products (
   product_name varchar(100) NOT NULL,
   product_quantity int NOT NULL DEFAULT 0,
   product_price decimal(10,2) NOT NULL,
-  product_description text,
+  product_description text NOT NULL,
   category_id int,
   added_by int,
   updated_by int,
