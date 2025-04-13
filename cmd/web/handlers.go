@@ -25,10 +25,13 @@ import (
 // MAIN PAGE START
 // mainHandler is a handler that renders the main page - main.tmpl
 func (app *application) mainHandler(w http.ResponseWriter, r *http.Request) {
+	submitted := r.URL.Query().Get("submitted") == "true"
 	data := NewTemplateData()
 	data.Title = "StockTrack"
 	data.HeaderText = "Welcome to StockTrack"
 	data.FileInfo = "Manage your inventory efficiently and stay updated on stock levels."
+	data.Submitted = submitted
+
 	err := app.render(w, http.StatusOK, "main.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render the Main Page", "template", "main.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -41,9 +44,11 @@ func (app *application) mainHandler(w http.ResponseWriter, r *http.Request) {
 // productHandler is a handler that render the product page - product.tmpl
 func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
+	submitted := r.URL.Query().Get("submitted") == "true"
 	data.Title = "StockTrack"
 	data.HeaderText = "Add New Products"
 	data.FileInfo = "Please fill in the product details below."
+	data.Submitted = submitted
 	err := app.render(w, http.StatusOK, "product.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render the Product Page", "template", "product.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -152,7 +157,8 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/product?submitted=true", http.StatusSeeOther)
+
 }
 
 // VIEW START

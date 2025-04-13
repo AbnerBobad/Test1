@@ -11,6 +11,7 @@ type TemplateData struct {
 	FormErrors map[string]string
 	FormData   map[string]string
 	Products   []*data.Product // Products is a slice of pointers to data.Product
+	Submitted  bool
 }
 
 func NewTemplateData() *TemplateData {
@@ -21,6 +22,6 @@ func NewTemplateData() *TemplateData {
 		FormErrors: map[string]string{},
 		FormData:   map[string]string{},
 		Products:   []*data.Product{}, // Initialize the slice
-
+		Submitted:  false,
 	}
 }
