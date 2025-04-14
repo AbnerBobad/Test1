@@ -283,3 +283,41 @@ func (app *application) deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/view", http.StatusSeeOther)
 }
+
+// search
+func (app *application) searchProducts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		http.Redirect(w, r, "/view", http.StatusSeeOther)
+		return
+	}
+
+	products, err := app.products.Search(query)
+	if err != nil {
+		app.logger.Error("search failed", "error", err)
+		http.Error(w, "Search error", http.StatusInternalServerError)
+		return
+	}
+	//warning
+	for _, product := range products {
+		switch {
+		case product.PQuantity == 0:
+			product.StockStatus = "Out of Stock"
+		case product.PQuantity <= 5:
+			product.StockStatus = "Stock Low"
+		default:
+			product.StockStatus = "Available"
+		}
+	}
+
+	data := NewTemplateData()
+	data.Products = products
+	data.Title = "Search Results"
+	data.HeaderText = "Search Results for: " + query
+
+	err = app.render(w, http.StatusOK, "view.tmpl", data)
+	if err != nil {
+		app.logger.Error("render search results failed", "error", err)
+		http.Error(w, "Render error", http.StatusInternalServerError)
+	}
+}

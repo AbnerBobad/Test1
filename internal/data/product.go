@@ -141,3 +141,30 @@ func (m *ProductModel) GetByID(id int64) (*Product, error) {
 	}
 	return product, nil
 }
+
+// search
+func (m *ProductModel) Search(query string) ([]*Product, error) {
+	stmt := `
+		SELECT product_id, product_name, product_description, product_quantity, product_price
+		FROM products
+		WHERE LOWER(product_name) LIKE LOWER($1) OR LOWER(product_description) LIKE LOWER($1)
+		OR CAST(product_quantity AS TEXT) LIKE $1 OR CAST(product_price AS TEXT) LIKE $1
+	`
+	rows, err := m.DB.Query(stmt, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var products []*Product
+	for rows.Next() {
+		var p Product
+		err := rows.Scan(&p.ID, &p.PName, &p.PDescription, &p.PQuantity, &p.PPrice)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, &p)
+	}
+
+	return products, nil
+}
