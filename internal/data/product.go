@@ -80,39 +80,64 @@ func (m *ProductModel) GetAll() ([]*Product, error) {
 	return products, nil
 }
 
-// // Update record in the products database
-// func (m *ProductModel) Update(p *Product) error {
-// 	query := `
-// 		UPDATE products
-// 		SET name = $1, description = $2, quantity = $3, price = $4, updated_at = now()
-// 		WHERE id = $5
-// 	`
-// 	args := []any{p.Name, p.Description, p.Quantity, p.Price, p.ID}
-// 	_, err := m.DB.Exec(query, args...)
-// 	return err
-// }
+// Update modifies an existing product in the database.
+func (m *ProductModel) Update(product *Product) error {
+	query := `
+		UPDATE products
+		SET product_name = $1,
+			product_quantity = $2,
+			product_price = $3,
+			product_description = $4,
+			updated_at = now()
+		WHERE product_id = $5
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-// // Delete record from the products database
-// func (m *ProductModel) Delete(id int64) error {
-// 	query := `
-// 		DELETE FROM products
-// 		WHERE id = $1
-// 	`
-// 	_, err := m.DB.Exec(query, id)
-// 	return err
-// }
+	_, err := m.DB.ExecContext(ctx, query,
+		product.PName,
+		product.PQuantity,
+		product.PPrice,
+		product.PDescription,
+		product.ID,
+	)
 
-// // Get a single record from the products database
-// func (m *ProductModel) Get(id int64) (*Product, error) {
-// 	query := `
-// 		SELECT id, name, description, quantity, price, created_at, updated_at
-// 		FROM products
-// 		WHERE id = $1
-// 	`
-// 	p := &Product{}
-// 	err := m.DB.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Description, &p.Quantity, &p.Price, &p.CreatedAt, &p.UpdatedAt)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return p, nil
-// }
+	return err
+}
+
+// Delete removes a product from the database.
+func (m *ProductModel) Delete(id int64) error {
+	query := `DELETE FROM products WHERE product_id = $1`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, id)
+	return err
+}
+
+// GetByID fetches a product by its ID
+func (m *ProductModel) GetByID(id int64) (*Product, error) {
+	query := `
+		SELECT product_id, product_name, product_quantity, product_price, product_description, created_at, updated_at
+		FROM products
+		WHERE product_id = $1
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	product := &Product{}
+	err := row.Scan(
+		&product.ID,
+		&product.PName,
+		&product.PQuantity,
+		&product.PPrice,
+		&product.PDescription,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+      integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <title>{{.Title}}</title>
+  </head>
+  <body>
+    <main class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <div class="card">
+            <div class="card-header bg-color text-white">
+              <h2 class="head">{{.HeaderText}}</h2>
+            </div>
+            <div class="card-body text-dark">
+              <form method="POST" action="/product/update">
+                <div class="form-group mb-4">
+                  <input type="hidden" name="product_id" value="{{.Product.ID}}" />
+                  <label>Product Name</label>
+                  <input class="form-control" name="product_name" value="{{.Product.PName}}" required />
+                </div>
+
+                <div class="form-group mb-4">
+                  <label>Quantity</label>
+                  <input class="form-control" name="product_quantity" type="number" value="{{.Product.PQuantity}}" required/>
+                </div>
+
+                <div class="form-group mb-4">
+                  <label>Price</label>
+                  <input class="form-control" name="product_price"
+                  type="number"
+                  step="0.01"
+                  value="{{.Product.PPrice}}"
+                  required/>
+                </div>
+
+                <div class="form-group mb-4">
+                  <label>Description</label>
+                  <textarea class="form-control" name="product_description">{{.Product.PDescription}}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <button id="upt-btn" type="submit" class="btn btn-lg btn-block">
+                    Update
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+      crossorigin="anonymous"
+    ></script>
+  
+  </body>
+</html>

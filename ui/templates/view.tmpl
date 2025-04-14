@@ -93,8 +93,10 @@
                 {{else}}table-info{{end}}">{{.StockStatus}}
                 </td>
                 <td>
-                  <a href="/edit?id={{.ID}}" class="btn btn-primary">Edit</a>
-                  <a href="/delete?id={{.ID}}" class="btn btn-danger">Delete</a>
+                 <a class="btn btn-outline-primary" href="/product/edit?id={{.ID}}" >Edit</a>
+                  <form method="POST" action="/product/delete?id={{.ID}}" style="display:inline;">
+                    <button class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete this product?');">Delete</button>
+                  </form>
                 </td>
               </tr>
               {{end}}
@@ -103,6 +105,21 @@
         </div>
       </div>
     </main>
+     <!-- Toast -->
+    <div class="position-fixed top-0 right-0 p-3" style="position: absolute; top: 0; right: 0;">
+      <div id="liveToast2" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
+        <div class="toast-header bg-color text-white">
+          <strong class="mr-auto">StockTrack</strong>
+          <small>just now</small>
+          <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="toast-body">
+        Product Updated Successfully!
+        </div>
+      </div>
+    </div>  
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
     <script
@@ -115,5 +132,13 @@
       integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
       crossorigin="anonymous"
     ></script>
+      <!--Script for the Toast to work  -->
+    {{if .Submitted}}
+    <script>
+        $(document).ready(function () {
+        $("#liveToast2").toast("show");
+        });
+    </script>
+    {{end}}
   </body>
 </html>

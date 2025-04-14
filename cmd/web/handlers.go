@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -185,10 +186,12 @@ func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := NewTemplateData()
+	submitted := r.URL.Query().Get("submitted") == "true"
 	data.Title = "StockTrack"
 	data.HeaderText = "Current Inventory"
 	data.FileInfo = "Here are the products in your inventory."
 	data.Products = products
+	data.Submitted = submitted
 
 	err = app.render(w, http.StatusOK, "view.tmpl", data)
 	if err != nil {
@@ -196,4 +199,87 @@ func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// Edit
+func (app *application) editProductForm(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		http.NotFound(w, r)
+		return
+	}
+
+	product, err := app.products.GetByID(id)
+	if err != nil {
+		app.logger.Error("error getting product", "error", err)
+		http.Error(w, "Product not found", http.StatusNotFound)
+		return
+	}
+
+	data := NewTemplateData()
+
+	data.Title = "Edit Product"
+	data.HeaderText = "Edit Product"
+	data.Product = product
+
+	err = app.render(w, http.StatusOK, "edit_product.tmpl", data)
+	if err != nil {
+		app.logger.Error("failed to render edit form", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// update
+func (app *application) updateProduct(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	idStr := r.PostFormValue("product_id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	product := &data.Product{
+		ID:           id,
+		PName:        r.PostFormValue("product_name"),
+		PDescription: r.PostFormValue("product_description"),
+	}
+
+	product.PQuantity, err = strconv.ParseInt(r.PostFormValue("product_quantity"), 10, 64)
+	product.PPrice, err = strconv.ParseFloat(r.PostFormValue("product_price"), 64)
+
+	err = app.products.Update(product)
+	if err != nil {
+		app.logger.Error("failed to update product", "error", err)
+		http.Error(w, "Could not update product", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/view?submitted=true", http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/edit?id=%d&submitted=true", id), http.StatusSeeOther)
+}
+
+// delete
+func (app *application) deleteProduct(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		http.NotFound(w, r)
+		return
+	}
+
+	err = app.products.Delete(id)
+	if err != nil {
+		app.logger.Error("failed to delete product", "error", err)
+		http.Error(w, "Could not delete product", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/view", http.StatusSeeOther)
 }

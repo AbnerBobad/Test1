@@ -91,3 +91,23 @@ func TestViewHandler(t *testing.T) {
 		t.Errorf("got %q, expected %q", got, expected)
 	}
 }
+
+func TestEditProduct(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	app := &application{
+		logger: logger,
+	}
+	req := httptest.NewRequest("GET", "/product/edit", nil)
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(app.mainHandler)
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	if status != http.StatusOK {
+		t.Errorf("got status code %v, expected status code %v.", status, http.StatusOK)
+	}
+	expected := "Edit Product\n"
+	got := rr.Body.String()
+	if got != expected {
+		t.Errorf("got %q, expected %q", got, expected)
+	}
+}

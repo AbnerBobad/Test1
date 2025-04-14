@@ -18,5 +18,9 @@ func (app *application) routes() http.Handler {
 	//Submit form
 	mux.HandleFunc("POST /product", app.createProduct) //submit product form
 
+	mux.HandleFunc("GET /product/edit", app.editProductForm)
+	mux.HandleFunc("POST /product/update", app.updateProduct)
+	mux.HandleFunc("POST /product/delete", app.deleteProduct)
+
 	return app.loggingMiddleware(mux)
 }
