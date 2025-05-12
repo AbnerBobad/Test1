@@ -2,12 +2,12 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/AbnerBobad/final_project/internal/data"
 	"github.com/AbnerBobad/final_project/internal/validator"
+	"github.com/justinas/nosurf"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,6 +21,7 @@ func (app *application) mainHandler(w http.ResponseWriter, r *http.Request) {
 	data.FileInfo = "Manage your inventory efficiently and stay updated on stock levels."
 	data.Submitted = submitted
 	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 	err := app.render(w, http.StatusOK, "main.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render the Main Page", "template", "main.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -40,6 +41,7 @@ func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 	data.FileInfo = "Please fill in the product details below."
 	data.Submitted = submitted
 	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 
 	err := app.render(w, http.StatusOK, "product.tmpl", data)
 	if err != nil {
@@ -49,14 +51,13 @@ func (app *application) productHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Product form creation2
+// product
 func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
-	//testing guard
 	if !app.IsAuthenticated(r) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	//parsed data form
+
 	err := r.ParseForm()
 	if err != nil {
 		app.logger.Error("failed to parse products form data", "error", err)
@@ -64,74 +65,84 @@ func (app *application) createProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//parse data member
 	productName := r.PostForm.Get("product_name")
 	productQuantityStr := r.PostForm.Get("product_quantity")
 	productPriceStr := r.PostForm.Get("product_price")
 	productDescription := r.PostForm.Get("product_description")
 
-	//converted data members
 	productQuantity, err := strconv.ParseInt(productQuantityStr, 10, 64)
+
 	productPrice, err := strconv.ParseFloat(productPriceStr, 64)
+
+	userID, ok := app.session.Get(r, "authenticateUserID").(int64)
+	if !ok {
+		app.logger.Error("failed to retrieve user ID from session")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	product := &data.Product{
 		PName:        productName,
 		PQuantity:    productQuantity,
 		PPrice:       productPrice,
 		PDescription: productDescription,
+		User:         userID,
 	}
-	//validate data
+
 	v := validator.NewValidator()
 	data.ValidateProduct(v, product)
 	if !v.ValidData() {
-		data := NewTemplateData()
-		data.Title = "StockTrack"
-		data.HeaderText = "Add New Products"
-		data.FileInfo = "Please fill in the product details below."
-		data.FormErrors = v.Errors
-		data.IsAuthenticated = app.IsAuthenticated(r)
-		data.FormData = map[string]string{
+		formData := NewTemplateData()
+		formData.Title = "StockTrack"
+		formData.HeaderText = "Add New Products"
+		formData.FileInfo = "Please fill in the product details below."
+		formData.FormErrors = v.Errors
+		formData.IsAuthenticated = app.IsAuthenticated(r)
+		formData.CSRFToken = nosurf.Token(r)
+		formData.FormData = map[string]string{
 			"product_name":        productName,
 			"product_quantity":    productQuantityStr,
 			"product_price":       productPriceStr,
 			"product_description": productDescription,
 		}
-		err = app.render(w, http.StatusOK, "product.tmpl", data)
+		err = app.render(w, http.StatusOK, "product.tmpl", formData)
 		if err != nil {
-			app.logger.Error("failed to render the Product Page", "template", "product.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+			app.logger.Error("failed to render the Product Page", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
 		}
 		return
 	}
-	//error checker
+
 	err = app.products.Insert(product)
 	if err != nil {
 		app.logger.Error("failed to insert product into database", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	//set a session data
 
 	http.Redirect(w, r, "/product?submitted=true", http.StatusSeeOther)
-
 }
 
-// VIEW START
-// viewHandler is a handler that renders the view page - view.tmpl
-func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
+// view
+func (app *application) listUserProducts(w http.ResponseWriter, r *http.Request) {
 	if !app.IsAuthenticated(r) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	//get all products from the database
-	products, err := app.products.GetAll()
-	if err != nil {
-		app.logger.Error("failed to get products from database", "error", err)
+
+	userID, ok := app.session.Get(r, "authenticateUserID").(int64)
+	if !ok {
+		app.logger.Error("failed to retrieve user ID from session")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
+	products, err := app.products.GetAllForUser(userID)
+	if err != nil {
+		app.logger.Error("failed to retrieve products for user", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 	//warning
 	for _, product := range products {
 		switch {
@@ -149,19 +160,72 @@ func (app *application) viewHandler(w http.ResponseWriter, r *http.Request) {
 	data.Title = "StockTrack"
 	data.HeaderText = "Current Inventory"
 	data.FileInfo = "Here are the products in your inventory."
-	data.Products = products
 	data.Submitted = submitted
-	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.IsAuthenticated = true
+	data.Products = products
+	data.CSRFToken = nosurf.Token(r)
 
 	err = app.render(w, http.StatusOK, "view.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render the view Page", "template", "view.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render product list", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
 	}
 }
 
-// Edit
+// func (app *application) editProductForm(w http.ResponseWriter, r *http.Request) {
+// 	// Check if user is authenticated
+// 	if !app.IsAuthenticated(r) {
+// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	// Get the product ID from the URL query parameter
+// 	idStr := r.URL.Query().Get("id")
+// 	id, err := strconv.ParseInt(idStr, 10, 64)
+// 	if err != nil || id <= 0 {
+// 		http.NotFound(w, r)
+// 		return
+// 	}
+
+// 	// Retrieve the product by ID
+// 	product, err := app.products.GetByID(id)
+// 	if err != nil {
+// 		app.logger.Error("error getting product", "error", err)
+// 		http.Error(w, "Product not found", http.StatusNotFound)
+// 		return
+// 	}
+
+// 	// Retrieve the logged-in user's ID from the session
+// 	userID, ok := app.session.Get(r, "authenticateUserID").(int64)
+// 	if !ok {
+// 		app.logger.Error("failed to retrieve userID from session", "error", err)
+// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	// Ensure the logged-in user is the owner of the product
+// 	if product.User != userID {
+// 		app.logger.Error("user does not own the product", "productUser", product.User, "userID", userID)
+// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	// Prepare data to render the edit form
+// 	data := NewTemplateData()
+// 	data.Title = "Edit Product"
+// 	data.HeaderText = "Edit Product"
+// 	data.Product = product
+// 	data.IsAuthenticated = app.IsAuthenticated(r)
+// 	data.CSRFToken = nosurf.Token(r)
+
+// 	// Render the edit form template
+// 	err = app.render(w, http.StatusOK, "edit_product.tmpl", data)
+// 	if err != nil {
+// 		app.logger.Error("failed to render edit form", "error", err)
+// 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+// 	}
+// }
+
 func (app *application) editProductForm(w http.ResponseWriter, r *http.Request) {
 	if !app.IsAuthenticated(r) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -187,6 +251,7 @@ func (app *application) editProductForm(w http.ResponseWriter, r *http.Request) 
 	data.HeaderText = "Edit Product"
 	data.Product = product
 	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 
 	err = app.render(w, http.StatusOK, "edit_product.tmpl", data)
 	if err != nil {
@@ -231,7 +296,8 @@ func (app *application) updateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/view?submitted=true", http.StatusSeeOther)
-	http.Redirect(w, r, fmt.Sprintf("/edit?id=%d&submitted=true", id), http.StatusSeeOther)
+	// http.Redirect(w, r, "/view?submitted=true", http.StatusSeeOther)
+	// http.Redirect(w, r, fmt.Sprintf("/edit?id=%d&submitted=true", id), http.StatusSeeOther)
 }
 
 // delete
@@ -257,25 +323,36 @@ func (app *application) deleteProduct(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/view", http.StatusSeeOther)
 }
 
-// search
+// // search
 func (app *application) searchProducts(w http.ResponseWriter, r *http.Request) {
 	if !app.IsAuthenticated(r) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	// Get the current user ID from the session
+	userID, ok := app.session.Get(r, "authenticateUserID").(int64)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get the search query
 	query := r.URL.Query().Get("query")
 	if query == "" {
 		http.Redirect(w, r, "/view", http.StatusSeeOther)
 		return
 	}
 
-	products, err := app.products.Search(query)
+	// Perform a filtered search for products owned by the user and matching the query
+	products, err := app.products.SearchByUser(query, userID)
 	if err != nil {
 		app.logger.Error("search failed", "error", err)
 		http.Error(w, "Search error", http.StatusInternalServerError)
 		return
 	}
-	//warning
+
+	// Add stock warnings
 	for _, product := range products {
 		switch {
 		case product.PQuantity == 0:
@@ -292,6 +369,7 @@ func (app *application) searchProducts(w http.ResponseWriter, r *http.Request) {
 	data.Title = "Search Results"
 	data.HeaderText = "Search Results for: " + query
 	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 
 	err = app.render(w, http.StatusOK, "view.tmpl", data)
 	if err != nil {
@@ -300,12 +378,57 @@ func (app *application) searchProducts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// func (app *application) searchProducts(w http.ResponseWriter, r *http.Request) {
+// 	if !app.IsAuthenticated(r) {
+// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+// 		return
+// 	}
+// 	query := r.URL.Query().Get("query")
+// 	if query == "" {
+// 		http.Redirect(w, r, "/view", http.StatusSeeOther)
+// 		return
+// 	}
+
+// 	products, err := app.products.Search(query)
+// 	if err != nil {
+// 		app.logger.Error("search failed", "error", err)
+// 		http.Error(w, "Search error", http.StatusInternalServerError)
+// 		return
+// 	}
+// 	//warning
+// 	for _, product := range products {
+// 		switch {
+// 		case product.PQuantity == 0:
+// 			product.StockStatus = "Out of Stock"
+// 		case product.PQuantity <= 5:
+// 			product.StockStatus = "Stock Low"
+// 		default:
+// 			product.StockStatus = "Available"
+// 		}
+// 	}
+
+// 	data := NewTemplateData()
+// 	data.Products = products
+// 	data.Title = "Search Results"
+// 	data.HeaderText = "Search Results for: " + query
+// 	data.IsAuthenticated = app.IsAuthenticated(r)
+// 	data.CSRFToken = nosurf.Token(r)
+
+// 	err = app.render(w, http.StatusOK, "view.tmpl", data)
+// 	if err != nil {
+// 		app.logger.Error("render search results failed", "error", err)
+// 		http.Error(w, "Render error", http.StatusInternalServerError)
+// 	}
+// }
+
 // Login page handler
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "Login"
 	data.HeaderText = "Login Page"
 	data.FileInfo = "Please login to continue."
+	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 	err := app.render(w, http.StatusOK, "login.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render the Login page", "template", "login.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -334,6 +457,8 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	data.HeaderText = "Login Page"
 	data.FileInfo = "Please login to continue."
 	data.FormErrors = errors_user
+	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 
 	data.FormData = map[string]string{
 		"email": email,
@@ -346,6 +471,8 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		data.Title = "Login"
 		data.HeaderText = "Login Page"
 		data.FileInfo = "Please login to continue."
+		data.IsAuthenticated = app.IsAuthenticated(r)
+		data.CSRFToken = nosurf.Token(r)
 		data.FormErrors = map[string]string{"default": "Email or password is incorrect"}
 		data.FormData = map[string]string{
 			"email": email,
@@ -369,6 +496,8 @@ func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
 	data.Title = "Sign Up"
 	data.HeaderText = "Create a new account"
 	data.FileInfo = "Please fill in the form to create a new account."
+	data.IsAuthenticated = app.IsAuthenticated(r)
+	data.CSRFToken = nosurf.Token(r)
 	err := app.render(w, http.StatusOK, "signup.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render the Signup page", "template", "signup.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -411,6 +540,8 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		data.Title = "Sign Up"
 		data.HeaderText = "Create a new account"
 		data.FileInfo = "Please fill in the form to create a new account."
+		data.IsAuthenticated = app.IsAuthenticated(r)
+		data.CSRFToken = nosurf.Token(r)
 		data.FormErrors = v.Errors
 		data.FormData = map[string]string{
 			"username": username,
@@ -440,6 +571,8 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 			data := NewTemplateData()
 			data.Title = "Sign Up"
 			data.FormErrors = map[string]string{"email": "Email is already registered"}
+			data.IsAuthenticated = app.IsAuthenticated(r)
+			data.CSRFToken = nosurf.Token(r)
 			data.FormData = map[string]string{
 				"username": username,
 				"email":    email,

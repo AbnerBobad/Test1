@@ -28,6 +28,8 @@
             </div>
             <div class="card-body text-dark">
               <form method="POST" action="/product/update">
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
                 <div class="form-group mb-4">
                   <input type="hidden" name="product_id" value="{{.Product.ID}}" />
                   <label>Product Name</label>

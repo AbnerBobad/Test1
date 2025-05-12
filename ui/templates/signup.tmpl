@@ -29,6 +29,8 @@
               </div>
               <div class="card-body">
                 <form action="/user/signup" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
                   <!-- username -->
                   <div class="form-outline mb-3">
                     <label class="form-label" for="username">Fullname:</label>

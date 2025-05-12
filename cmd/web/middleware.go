@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/justinas/nosurf"
 )
 
 // Middleware for logging
@@ -22,7 +24,7 @@ func (app *application) loggingMiddleware(next http.Handler) http.Handler {
 
 }
 
-// required middleware for redirection to login is no
+// required middleware for redirection to login if not authenticated
 func (app *application) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -34,4 +36,16 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 	})
+}
+
+// nosurf
+func noSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	return csrfHandler
 }

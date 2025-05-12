@@ -32,7 +32,8 @@
                   <div class="error">{{ . }}</div>
                   {{end}}
                 <form action="/user/login" method="POST">
-                  
+                  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
                    <!-- email -->
                      <div class="form-outline mb-3">
                     <label class="form-label" for="email">Email:</label>

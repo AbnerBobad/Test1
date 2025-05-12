@@ -44,7 +44,7 @@ func (app *application) routes() http.Handler {
 
 	//FUNCTIONALITY
 	// mux.Handle("GET /view", app.session.Enable(http.HandlerFunc(app.viewHandler)))
-	mux.Handle("GET /view", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.viewHandler))))
+	mux.Handle("GET /view", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.listUserProducts))))
 
 	// mux.Handle("POST /product", app.session.Enable(http.HandlerFunc(app.createProduct)))
 	mux.Handle("POST /product", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.createProduct))))
@@ -61,5 +61,5 @@ func (app *application) routes() http.Handler {
 	// mux.Handle("GET /search", app.session.Enable(http.HandlerFunc(app.searchProducts)))
 	mux.Handle("GET /search", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.searchProducts))))
 
-	return app.loggingMiddleware(mux)
+	return app.loggingMiddleware(noSurf(mux))
 }

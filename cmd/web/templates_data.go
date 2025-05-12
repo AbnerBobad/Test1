@@ -10,6 +10,7 @@ type TemplateData struct {
 	Title      string
 	HeaderText string
 	FileInfo   string
+	CSRFToken  string
 
 	FormErrors map[string]string
 	FormData   map[string]string
@@ -28,6 +29,7 @@ func NewTemplateData() *TemplateData {
 		Title:      "Default Title",
 		HeaderText: "Default HeaderText",
 		FileInfo:   "Default FileInfo",
+		// CSRFToken:  "",
 
 		FormErrors: map[string]string{},
 		FormData:   map[string]string{},

@@ -99,11 +99,38 @@ func (m *UserModel) Insert(user *User) error {
 // 	return uid, nil
 // }
 
+// func (m *UserModel) Authenticate(email, password string) (int64, error) {
+// 	query := `
+// 		SELECT user_id, password_hash FROM users
+// 		WHERE email = $1 AND activated = true
+// 	`
+
+// 	var uid int64
+// 	var hashedPassword []byte
+
+// 	err := m.DB.QueryRow(query, email).Scan(&uid, &hashedPassword)
+// 	if err != nil {
+// 		if errors.Is(err, sql.ErrNoRows) {
+// 			return 0, ErrInvalidCredentials
+// 		}
+// 		return 0, err
+// 	}
+
+// 	// Compare the provided password with the stored hash
+// 	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+// 	if err != nil {
+// 		return 0, ErrInvalidCredentials
+// 	}
+
+//		return uid, nil
+//	}
+//
+// Authenticate user and return user ID
 func (m *UserModel) Authenticate(email, password string) (int64, error) {
 	query := `
-		SELECT user_id, password_hash FROM users
-		WHERE email = $1 AND activated = true
-	`
+        SELECT user_id, password_hash FROM users
+        WHERE email = $1 AND activated = true
+    `
 
 	var uid int64
 	var hashedPassword []byte
