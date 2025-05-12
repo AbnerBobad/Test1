@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -10,19 +11,26 @@ import (
 	"time"
 
 	"github.com/AbnerBobad/final_project/internal/data"
+	"github.com/golangcollege/sessions"
 	_ "github.com/lib/pq"
 )
 
 type application struct {
-	addr          *string
-	products      *data.ProductModel
+	addr *string
+
+	products *data.ProductModel
+	users    *data.UserModel
+
 	logger        *slog.Logger
 	templateCache map[string]*template.Template
+	session       *sessions.Session
+	tlsConfig     *tls.Config //new change
 }
 
 func main() {
 	addr := flag.String("addr", "", "HTTP network address")
 	dsn := flag.String("dsn", "", "PostgreSQL DSN")
+	secret := flag.String("secret", "sjkda2+sd3ds+sdf3+asc3+sdf42+sld", "Secret key")
 
 	flag.Parse()
 
@@ -41,19 +49,33 @@ func main() {
 	}
 
 	defer db.Close()
+	//session integration NEW
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 12 * time.Hour
+	session.Secure = true
 
-	app := &application{
-		addr:          addr,
-		products:      &data.ProductModel{DB: db},
-		logger:        logger,
-		templateCache: templateCache,
+	//tls configuration ECDHE || NEW CHANGES
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,
+		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
 	}
 
+	app := &application{
+		addr:     addr,
+		products: &data.ProductModel{DB: db},
+		users:    &data.UserModel{DB: db},
+		// category:      &data.CategoryModel{DB: db},
+		logger:        logger,
+		templateCache: templateCache,
+		session:       session,
+		tlsConfig:     tlsConfig, //new changes
+	}
 	err = app.serve()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+
 }
 
 func openDB(dsn string) (*sql.DB, error) {

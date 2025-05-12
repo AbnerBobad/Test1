@@ -71,26 +71,28 @@
           <h2 class="head">{{.HeaderText}}</h2>
         </div>
         <div class="card-body">
-          <table class="table table-hover" action="/view" method="GET">
+        <div class="table-responsive">
+          <table class="table table-striped" action="/view" method="GET">
             <thead>
               <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th scope="col">Product</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">Description</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+                
               </tr>
             </thead>
             <tbody>
               {{range .Products}}
               <tr>
-                <td>{{.PName}}</td>
+                <td class="text-break">{{.PName}}</td>
                 <td>{{.PQuantity}}</td>
                 <td>$ {{.PPrice}}</td>
-                <td>{{.PDescription}}</td>
+                <td class="text-break2">{{.PDescription}}</td>
                 <td class="{{if eq .StockStatus "Out of Stock"}}table-danger {{else if eq .StockStatus "Stock Low"}}table-warning
-                {{else}}table-info{{end}}">{{.StockStatus}}
+                {{else}}table-info{{end}}" >{{.StockStatus}}
                 </td>
                 <td>
                  <a class="btn btn-outline-primary" href="/product/edit?id={{.ID}}" >Edit</a>
@@ -102,6 +104,7 @@
               {{end}}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     </main>

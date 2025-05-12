@@ -1,13 +1,11 @@
-CREATE TYPE roles AS ENUM (
-  'admin',
-  'staff',
-  'viewer'
-);
+CREATE TYPE roles AS ENUM ('admin', 'staff');
 
 CREATE TABLE IF NOT EXISTS users (
-  user_id BigSerial PRIMARY KEY,
-  username varchar(100) UNIQUE NOT NULL,
-  userpassword text NOT NULL,
-  role roles NOT NULL,
-  created_at timestamp DEFAULT now()
+  user_id BIGSERIAL PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
+  email CITEXT UNIQUE NOT NULL,
+  password_hash BYTEA NOT NULL,
+  role roles NOT NULL DEFAULT 'admin',
+  activated BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP DEFAULT now()
 );

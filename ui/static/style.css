@@ -85,3 +85,26 @@
     font-size: 24px;
     font-weight: bold;
   }
+ .text-break{
+  max-width: 150px; 
+  word-break: break-word;
+ }
+ .text-break2{
+  max-width: 300px; 
+  word-break: break-word;
+ }
+ /*
+ * Login
+ */
+.loginb{
+  background-color: #0f857d; 
+}
+#cardh{
+  background-color: black;
+}
+#fp{
+color: #393f81
+}
+#fp2{
+color: #c2170b
+}

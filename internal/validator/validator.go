@@ -91,3 +91,17 @@ func IsPositiveQuantity(quantity int64) bool {
 func IsPositivePrice(price float64) bool {
 	return price > 0
 }
+
+func NotZero(value int64) bool {
+	return value != 0
+}
+
+func NotZeroF(value float64) bool {
+	return value != 0.0
+}
+func NotPositive(value int64) bool {
+	return value > 0
+}
+func NotPositiveF(value float64) bool {
+	return value > 0.0
+}
