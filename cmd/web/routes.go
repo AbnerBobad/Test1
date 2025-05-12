@@ -26,22 +26,40 @@ func (app *application) routes() http.Handler {
 
 	// mux.HandleFunc("GET /search", app.searchProducts) //search for data
 
+	// mux.Handle("GET /", http.HandlerFunc(app.mainHandler))
+	// mux.Handle("GET /product", http.HandlerFunc(app.productHandler))
 	//MAIN
-	mux.Handle("GET /", http.HandlerFunc(app.mainHandler))
-	mux.Handle("GET /product", http.HandlerFunc(app.productHandler))
+	mux.Handle("GET /", app.session.Enable(http.HandlerFunc(app.mainHandler)))
+	// mux.Handle("GET /product", app.session.Enable(http.HandlerFunc(app.productHandler)))
+	mux.Handle("GET /product", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.productHandler))))
 
 	//LOGIN
-	mux.Handle("GET /login", app.session.Enable(http.HandlerFunc(app.loginHandler)))
+	mux.Handle("GET /user/login", app.session.Enable(http.HandlerFunc(app.loginUserForm)))
+	mux.Handle("POST /user/login", app.session.Enable(http.HandlerFunc(app.loginUser)))
+	//Logout
+	mux.Handle("POST /user/logout", app.session.Enable(http.HandlerFunc(app.logoutUser)))
+	//SignUp
 	mux.Handle("GET /user/signup", app.session.Enable(http.HandlerFunc(app.signupUserForm)))
 	mux.Handle("POST /user/signup", app.session.Enable(http.HandlerFunc(app.signupUser)))
 
 	//FUNCTIONALITY
-	mux.Handle("GET /view", app.session.Enable(http.HandlerFunc(app.viewHandler)))
-	mux.Handle("POST /product", app.session.Enable(http.HandlerFunc(app.createProduct)))
-	mux.Handle("GET /product/edit", app.session.Enable(http.HandlerFunc(app.editProductForm)))
-	mux.Handle("POST /product/update", app.session.Enable(http.HandlerFunc(app.updateProduct)))
-	mux.Handle("POST /product/delete", app.session.Enable(http.HandlerFunc(app.deleteProduct)))
-	mux.Handle("GET /search", app.session.Enable(http.HandlerFunc(app.searchProducts)))
+	// mux.Handle("GET /view", app.session.Enable(http.HandlerFunc(app.viewHandler)))
+	mux.Handle("GET /view", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.viewHandler))))
+
+	// mux.Handle("POST /product", app.session.Enable(http.HandlerFunc(app.createProduct)))
+	mux.Handle("POST /product", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.createProduct))))
+
+	// mux.Handle("GET /product/edit", app.session.Enable(http.HandlerFunc(app.editProductForm)))
+	mux.Handle("GET /product/edit", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.editProductForm))))
+
+	// mux.Handle("POST /product/update", app.session.Enable(http.HandlerFunc(app.updateProduct)))
+	mux.Handle("POST /product/update", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.updateProduct))))
+
+	// mux.Handle("POST /product/delete", app.session.Enable(http.HandlerFunc(app.deleteProduct)))
+	mux.Handle("POST /product/delete", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.deleteProduct))))
+
+	// mux.Handle("GET /search", app.session.Enable(http.HandlerFunc(app.searchProducts)))
+	mux.Handle("GET /search", app.session.Enable(app.requireAuthentication(http.HandlerFunc(app.searchProducts))))
 
 	return app.loggingMiddleware(mux)
 }

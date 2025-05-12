@@ -16,60 +16,52 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/static/style.css"/>
-    <title></title>
+    <title>{{.Title}}</title>
   </head>
   <body class="loginb">
-  <section class="vh-100">
+    <section class="vh-100">
       <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
           <div class="col-4">
             <div class="card">
-              <div
-                id="cardh"
-                class="text-center card-header text-light"
-              >
-                <img src="images/4.png" height="70" alt="Login!" />
+              <div id="cardh" class="text-center card-header text-light">
                 <h1 class="h2 mb-2 font-weight-normal">{{.Title}}</h1>
               </div>
               <div class="card-body">
-                <form id="frm_login_user">
-                  <div class="form-outline mb-3">
-                    <label class="form-label" for="user_n"
-                      >Email or Username:</label
-                    >
+                  {{with .FormErrors.default}}
+                  <div class="error">{{ . }}</div>
+                  {{end}}
+                <form action="/user/login" method="POST">
+                  
+                   <!-- email -->
+                     <div class="form-outline mb-3">
+                    <label class="form-label" for="email">Email:</label>
                     <input
-                      id="mail"
                       type="email"
-                      name="user_n"
-                      class="form-control"
-                      placeholder="Email or Username"
-                    />
-                    <small class="form-text text-muted"
-                      >Insert your Email or Username!</small
-                    >
+                      id="email"
+                      name="email" placeholder="Insert your Email!"
+                      value="{{index .FormData "email"}}"
+                      class="form-control"/>
                   </div>
-                  <div class="form-outline mb-3">
-                    <label class="form-label" for="passw">Password:</label>
+                  <!-- password -->
+                    <div class="form-outline mb-3">
+                    <label class="form-label" for="password_hash">Password:</label>
                     <input
-                      id="pa"
                       type="password"
-                      name="passw"
-                      class="form-control"
-                      placeholder="Password"
-                    />
-                    <small class="form-text text-muted"
-                      >Insert your Password!</small
-                    >
+                      id="password_hash"
+                      name="password_hash" placeholder="Insert your Password"
+                      class="form-control"/>
                   </div>
+
                   <div class="text-center">
                     <button
                       class="btn btn-primary btn-lg btn-block mb-2"
-                      id="btn_login"
-                      type="button"
+                      type="submit"
                     >
                       Login
                     </button>
                   </div>
+
                   <div class="col text-center mb-4 pb-lg-2">
                     <!-- No Link for now -->
                     <a href="/user/signup" id="fp">Create an Account</a>
@@ -81,8 +73,8 @@
         </div>
       </div>
     </section>
-    </div>
-    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    
+    <!-- jQuery and Bootstrap Bundle (includes Popper) -->
     <script
       src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
       integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/AbnerBobad/final_project/internal/data"
 )
 
@@ -15,8 +17,10 @@ type TemplateData struct {
 	Products []*data.Product // Products is a slice of pointers to data.Product
 	Users    []*data.User
 
-	Submitted bool
-	Product   *data.Product
+	Submitted       bool
+	IsAuthenticated bool
+
+	Product *data.Product
 }
 
 func NewTemplateData() *TemplateData {
@@ -32,7 +36,12 @@ func NewTemplateData() *TemplateData {
 		Products: []*data.Product{},
 		Users:    []*data.User{},
 
-		Submitted: false,
-		Product:   nil,
+		Submitted:       false,
+		IsAuthenticated: false,
+		Product:         nil,
 	}
+}
+
+func (app *application) IsAuthenticated(r *http.Request) bool {
+	return app.session.Exists(r, "authenticateUserID")
 }

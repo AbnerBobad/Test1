@@ -14,6 +14,7 @@ type Product struct {
 	PQuantity    int64     `json:"product_quantity"`
 	PPrice       float64   `json:"product_price"`
 	PDescription string    `json:"product_description"`
+	User         int64     `json:"added_by"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	StockStatus  string    `json:"status"`
@@ -41,8 +42,8 @@ func ValidateProduct(v *validator.Validator, product *Product) {
 // Insert record into the the products database
 func (m *ProductModel) Insert(product *Product) error {
 	query := `
-		INSERT INTO products (product_name, product_quantity, product_price, product_description, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, now(), now())
+		INSERT INTO products (product_name, product_quantity, product_price, product_description, added_by, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, now(), now())
 		RETURNING product_id, created_at, updated_at
 	`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -55,6 +56,7 @@ func (m *ProductModel) Insert(product *Product) error {
 		product.PQuantity,
 		product.PPrice,
 		product.PDescription,
+		product.User,
 	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
 
 }
@@ -62,8 +64,9 @@ func (m *ProductModel) Insert(product *Product) error {
 // // Get all records from the products database
 func (m *ProductModel) GetAll() ([]*Product, error) {
 	query := `
-		SELECT product_id, product_name, product_quantity, product_price, product_description, created_at, updated_at
+		SELECT product_id, product_name, product_quantity, product_price, product_description, added_by, created_at, updated_at
 		FROM products
+		WHERE product_id = $1 AND added_by = $2
 	`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

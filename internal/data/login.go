@@ -8,6 +8,7 @@ import (
 
 	"github.com/AbnerBobad/final_project/internal/validator"
 	"github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -22,6 +23,9 @@ type User struct {
 
 // ErrDuplicateEmail is returned when a user tries to register with an email that already exists.
 var ErrDuplicateEmail = errors.New("duplicate email")
+
+// ErrInvalidCredentials
+var ErrInvalidCredentials = errors.New("invalid credentials")
 
 type UserModel struct {
 	DB *sql.DB
@@ -69,4 +73,54 @@ func (m *UserModel) Insert(user *User) error {
 		return err
 	}
 	return nil
+}
+
+// Authenticate user
+// func (m *UserModel) Authenticate(email, password_hash string) (int64, error) {
+// 	query := `
+// 		SELECT user_id FROM users
+// 		WHERE email = $1 AND activated = true
+// 	`
+
+// 	var uid int64
+// 	var hashedPassword []byte
+
+// 	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	// defer cancel()
+
+// 	err := m.DB.QueryRow(query, email).Scan(&uid, &hashedPassword)
+// 	if err != nil {
+// 		if errors.Is(err, sql.ErrNoRows) {
+// 			return 0, ErrInvalidCredentials
+// 		} else {
+// 			return 0, err
+// 		}
+// 	}
+// 	return uid, nil
+// }
+
+func (m *UserModel) Authenticate(email, password string) (int64, error) {
+	query := `
+		SELECT user_id, password_hash FROM users
+		WHERE email = $1 AND activated = true
+	`
+
+	var uid int64
+	var hashedPassword []byte
+
+	err := m.DB.QueryRow(query, email).Scan(&uid, &hashedPassword)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrInvalidCredentials
+		}
+		return 0, err
+	}
+
+	// Compare the provided password with the stored hash
+	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+	if err != nil {
+		return 0, ErrInvalidCredentials
+	}
+
+	return uid, nil
 }
